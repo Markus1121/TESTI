@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic API Docs</title>
+  <script src="./static/marked.min.js"></script>
+</head>
+<body>
+  <div id="redoc-container"></div>
+
+  <script>
+    // Load OpenAPI JSON
+    fetch('./restkuvaus.json')
+      .then(response => response.json())
+      .then(spec => {
+        // Traverse OpenAPI spec to find x-md references
+        const loadMarkdownFiles = async (obj) => {
+          for (const key in obj) {
+            if (key.startsWith('x-md')) {
+              const markdownPath = obj[key];
+              const response = await fetch(markdownPath);
+              const markdownContent = await response.text();
+              obj[key.replace('x-md-', '')] = marked(markdownContent); // Render Markdown to HTML
+              delete obj[key];
+            } else if (typeof obj[key] === 'object') {
+              await loadMarkdownFiles(obj[key]); // Recursive call for nested objects
+            }
+          }
+        };
+
+        loadMarkdownFiles(spec).then(() => {
+          Redoc.init(spec, {}, document.getElementById('redoc-container'));
+        });
+      })
+      .catch(err => console.error('Error loading OpenAPI spec or Markdown:', err));
+  </script>
+</body>
+</html>

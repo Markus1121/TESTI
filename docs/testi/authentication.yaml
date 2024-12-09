@@ -1,0 +1,7 @@
+# testi/authentication.yaml
+description: |
+  ## Authentication
+  This section describes authentication.
+
+  - Use a **Bearer Token** for secure access.
+  - Use the `/login` endpoint for token generation.
